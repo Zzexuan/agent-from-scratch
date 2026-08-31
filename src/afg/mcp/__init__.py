@@ -1,0 +1,1 @@
+"""MCP 模块：D11 起填充（手写 JSON-RPC 2.0 server + client）。"""

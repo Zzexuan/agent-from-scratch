@@ -1,0 +1,31 @@
+[project]
+name = "afg"
+version = "0.1.0"
+description = "Agent From Scratch：手搓 Agent 内核（消息模型 / LLM 抽象 / 上下文 / 工具 / 记忆）"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2",
+    "pydantic-settings>=2",
+    "openai>=1",
+    "structlog>=24",
+    "tiktoken>=0.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

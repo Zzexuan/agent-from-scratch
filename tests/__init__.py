@@ -1,0 +1,1 @@
+"""测试包：D1 立 mock 纪律（tests/fakes.py），D2 起逐步补单测。"""

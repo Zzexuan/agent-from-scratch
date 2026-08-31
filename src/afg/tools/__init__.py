@@ -1,0 +1,1 @@
+"""工具系统模块：D4 起填充（BaseTool/ToolRegistry/@tool 装饰器/内置工具）。"""
