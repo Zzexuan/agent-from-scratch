@@ -1,0 +1,17 @@
+{"model": "gpt-5.6-luna", "base_url": "http://127.0.0.1:15721/v1", "budget": 6144, "event": "chat.session_start", "step": 0, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:07.841285Z"}
+{"turn": 1, "tokens": 31, "budget": 6144, "usage_pct": 0.5, "latency_ms": 1876.0, "event": "chat.turn", "step": 1, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:09.728063Z"}
+{"content": "好的", "event": "chat.reply", "step": 1, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:09.728310Z"}
+{"turn": 2, "tokens": 38, "budget": 6144, "usage_pct": 0.6, "latency_ms": 1725.0, "event": "chat.turn", "step": 2, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:11.453557Z"}
+{"content": "好的", "event": "chat.reply", "step": 2, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:11.453997Z"}
+{"turn": 3, "tokens": 45, "budget": 6144, "usage_pct": 0.7, "latency_ms": 1848.8, "event": "chat.turn", "step": 3, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:13.303308Z"}
+{"content": "好的", "event": "chat.reply", "step": 3, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:13.303516Z"}
+{"turn": 4, "tokens": 52, "budget": 6144, "usage_pct": 0.8, "latency_ms": 2232.5, "event": "chat.turn", "step": 4, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:33.787514Z"}
+{"content": "好的", "event": "chat.reply", "step": 4, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:33.787742Z"}
+{"turn": 5, "tokens": 60, "budget": 6144, "usage_pct": 1.0, "latency_ms": 2557.0, "event": "chat.turn", "step": 5, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:36.344947Z"}
+{"content": "明白", "event": "chat.reply", "step": 5, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:36.345194Z"}
+{"turn": 6, "tokens": 67, "budget": 6144, "usage_pct": 1.1, "latency_ms": 1691.1, "event": "chat.turn", "step": 6, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:38.036671Z"}
+{"content": "收到", "event": "chat.reply", "step": 6, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:38.037062Z"}
+{"turn": 7, "tokens": 73, "budget": 6144, "usage_pct": 1.2, "latency_ms": 1365.6, "event": "chat.turn", "step": 7, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:57.938871Z"}
+{"content": "可以", "event": "chat.reply", "step": 7, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:57.939087Z"}
+{"turn": 8, "tokens": 80, "budget": 6144, "usage_pct": 1.3, "latency_ms": 1795.2, "event": "chat.turn", "step": 8, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:59.734549Z"}
+{"content": "好的", "event": "chat.reply", "step": 8, "trace_id": "15e0c82b", "level": "info", "component": "chat", "ts": "2026-09-01T09:16:59.734802Z"}

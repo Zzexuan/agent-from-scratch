@@ -10,3 +10,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# 运行产物 —— 会话日志仅供本机回放，不入库
+chat.log
