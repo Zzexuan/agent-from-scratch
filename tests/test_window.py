@@ -5,17 +5,17 @@ from afg.context.messages import Message
 from afg.context.window import COMPRESS_THRESHOLD, ContextWindow
 
 
-def test_budget_from_model_window() -> None:
+def test_budget_from_model_window():
     assert ContextWindow.from_model(8192).budget == 6144
     assert ContextWindow.from_model(4096).budget == 3072
 
 
-def test_invalid_budget_raises() -> None:
+def test_invalid_budget_raises():
     with pytest.raises(ValueError):
         ContextWindow(budget=0)
 
 
-def test_check_low_usage_no_compress() -> None:
+def test_check_low_usage_no_compress():
     counter = TokenCounter()
     window = ContextWindow(budget=1000)
     messages = [Message(role="user", content="hi")]
@@ -26,7 +26,7 @@ def test_check_low_usage_no_compress() -> None:
     assert not report.should_compress
 
 
-def test_check_should_compress_matches_threshold() -> None:
+def test_check_should_compress_matches_threshold():
     counter = TokenCounter()
     messages = [Message(role="user", content="x" * 1000)]
     n = counter.count_messages(messages)
@@ -36,7 +36,7 @@ def test_check_should_compress_matches_threshold() -> None:
         assert report.should_compress == (report.usage_ratio >= COMPRESS_THRESHOLD)
 
 
-def test_check_over_threshold_triggers() -> None:
+def test_check_over_threshold_triggers():
     counter = TokenCounter()
     window = ContextWindow(budget=100)
     messages = [Message(role="user", content="这是一个很长的用户消息" * 50)]

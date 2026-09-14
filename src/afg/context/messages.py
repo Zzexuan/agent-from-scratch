@@ -18,7 +18,7 @@ class Message(BaseModel):
     tool_call_id: str | None = None
 
     @model_validator(mode="after")
-    def _check_role_tool(self) -> "Message":
+    def _check_role_tool(self):
         if self.role == "tool" and not self.tool_call_id:
             raise ValueError("role='tool' 的消息必须带 tool_call_id")
         return self
@@ -29,5 +29,5 @@ class TokenUsage(BaseModel):
     completion_tokens: int = 0
 
     @property
-    def total(self) -> int:
+    def total(self):
         return self.prompt_tokens + self.completion_tokens

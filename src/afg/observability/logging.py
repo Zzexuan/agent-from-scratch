@@ -1,23 +1,19 @@
 import logging
 import sys
 import uuid
-from pathlib import Path
-from typing import Any
 
 import structlog
 
 _LOG_FILE = "chat.log"
 
 
-def rename_logger_to_component(
-    _logger: Any, _method: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+def rename_logger_to_component(_logger, _method, event_dict):
     if "logger" in event_dict:
         event_dict["component"] = event_dict.pop("logger")
     return event_dict
 
 
-def _shared_processors() -> list[Any]:
+def _shared_processors():
     return [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
@@ -29,7 +25,7 @@ def _shared_processors() -> list[Any]:
     ]
 
 
-def setup_logging(log_file: str | Path = _LOG_FILE) -> str:
+def setup_logging(log_file=_LOG_FILE):
     shared = _shared_processors()
 
     console_formatter = structlog.stdlib.ProcessorFormatter(
@@ -72,5 +68,5 @@ def setup_logging(log_file: str | Path = _LOG_FILE) -> str:
     return trace_id
 
 
-def get_logger(component: str) -> structlog.stdlib.BoundLogger:
+def get_logger(component):
     return structlog.get_logger(component)

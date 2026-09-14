@@ -1,17 +1,17 @@
 import json
-from typing import Any
-
-from afg.context.messages import Message
 
 _FALLBACK_TOKENS_PER_CHAR = 0.6
 
 
 class TokenCounter:
-    def __init__(self, prefer_tiktoken: bool = True) -> None:
-        self._encoding: Any | None = self._load_encoding() if prefer_tiktoken else None
+    def __init__(self, prefer_tiktoken=True):
+        if prefer_tiktoken:
+            self._encoding = self._load_encoding()
+        else:
+            self._encoding = None
 
     @staticmethod
-    def _load_encoding() -> Any | None:
+    def _load_encoding():
         try:
             import tiktoken
         except ImportError:
@@ -21,14 +21,14 @@ class TokenCounter:
         except (KeyError, OSError):
             return None
 
-    def count(self, text: str) -> int:
+    def count(self, text):
         if not text:
             return 0
         if self._encoding is not None:
             return len(self._encoding.encode(text))
         return max(1, int(len(text) * _FALLBACK_TOKENS_PER_CHAR))
 
-    def count_messages(self, messages: list[Message]) -> int:
+    def count_messages(self, messages):
         total = 0
         for msg in messages:
             if msg.content:

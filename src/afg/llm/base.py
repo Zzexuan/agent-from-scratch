@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel, Field
 
-from afg.context.messages import Message, TokenUsage, ToolCall
+from afg.context.messages import TokenUsage, ToolCall
 
 
 class LLMResponse(BaseModel):
@@ -13,10 +13,5 @@ class LLMResponse(BaseModel):
 
 class BaseLLM(ABC):
     @abstractmethod
-    def chat(
-        self,
-        messages: list[Message],
-        tools: list[dict] | None = None,
-        temperature: float = 0.7,
-    ) -> LLMResponse:
+    def chat(self, messages, tools=None, temperature=0.7):
         ...

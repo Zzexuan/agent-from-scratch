@@ -1,8 +1,5 @@
 from pydantic import BaseModel, Field
 
-from afg.context.counter import TokenCounter
-from afg.context.messages import Message
-
 COMPRESS_THRESHOLD = 0.75
 
 
@@ -14,16 +11,16 @@ class ContextReport(BaseModel):
 
 
 class ContextWindow:
-    def __init__(self, budget: int) -> None:
+    def __init__(self, budget):
         if budget <= 0:
             raise ValueError(f"budget 必须为正整数，收到 {budget}")
         self.budget = budget
 
     @classmethod
-    def from_model(cls, window_tokens: int, safety_ratio: float = 0.75) -> "ContextWindow":
+    def from_model(cls, window_tokens, safety_ratio=0.75):
         return cls(int(window_tokens * safety_ratio))
 
-    def check(self, messages: list[Message], counter: TokenCounter) -> ContextReport:
+    def check(self, messages, counter):
         total = counter.count_messages(messages)
         usage = total / self.budget
         return ContextReport(

@@ -1,22 +1,16 @@
-from afg.context.messages import Message
 from afg.llm.base import BaseLLM, LLMResponse
 
 
 class FakeLLM(BaseLLM):
-    def __init__(self, responses: list[LLMResponse | str]) -> None:
+    def __init__(self, responses):
         self._responses = list(responses)
-        self.calls: list[list[Message]] = []
+        self.calls = []
 
-    def chat(
-        self,
-        messages: list[Message],
-        tools: list[dict] | None = None,
-        temperature: float = 0.7,
-    ) -> LLMResponse:
+    def chat(self, messages, tools=None, temperature=0.7):
         self.calls.append(list(messages))
         if not self._responses:
             raise AssertionError("FakeLLM 响应序列已耗尽")
         item = self._responses.pop(0)
-        if isinstance(item, str):
+        if type(item) == str:
             item = LLMResponse(content=item)
         return item

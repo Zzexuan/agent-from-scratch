@@ -12,7 +12,7 @@ from afg.observability.logging import get_logger, setup_logging
 SYSTEM_PROMPT = "你是一个乐于助人的 AI 助手，请用简体中文回答。"
 
 
-def main() -> None:
+def main():
     setup_logging()
     config = LLMConfig()
     ctx_cfg = ContextConfig()
@@ -21,7 +21,7 @@ def main() -> None:
     counter = TokenCounter()
     window = ContextWindow.from_model(ctx_cfg.context_window_tokens, ctx_cfg.safety_ratio)
 
-    messages: list[Message] = [Message(role="system", content=SYSTEM_PROMPT)]
+    messages = [Message(role="system", content=SYSTEM_PROMPT)]
 
     logger.info(
         "chat.session_start",

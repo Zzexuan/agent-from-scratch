@@ -4,40 +4,45 @@ from afg.context.counter import TokenCounter
 from afg.context.messages import Message
 
 
-def test_count_english_uses_tiktoken() -> None:
+def test_count_english_uses_tiktoken():
     text = "Hello, world! This is a token counting test."
     enc = tiktoken.get_encoding("cl100k_base")
     assert TokenCounter().count(text) == len(enc.encode(text))
 
 
-def test_count_chinese_mixed() -> None:
+def test_count_chinese_mixed():
     text = "你好，世界！这是中英文混合 123 的一段文本。"
     enc = tiktoken.get_encoding("cl100k_base")
     assert TokenCounter().count(text) == len(enc.encode(text))
 
 
-def test_count_empty_text_is_zero() -> None:
+def test_count_empty_text_is_zero():
     assert TokenCounter().count("") == 0
 
 
-def test_count_fallback_estimation() -> None:
+def test_count_fallback_estimation():
     counter = TokenCounter(prefer_tiktoken=False)
     assert counter.count("你好世界") == int(len("你好世界") * 0.6)
     assert counter.count("") == 0
 
 
-def test_count_messages_sums_content() -> None:
+def test_count_messages_sums_content():
     counter = TokenCounter()
     messages = [
         Message(role="system", content="你是助手"),
         Message(role="user", content="你好"),
         Message(role="assistant", content="你好！有什么可以帮你？"),
     ]
-    expected = sum(counter.count(m.content or "") for m in messages)
+    expected = 0
+    for m in messages:
+        content = m.content
+        if content is None:
+            content = ""
+        expected += counter.count(content)
     assert counter.count_messages(messages) == expected
 
 
-def test_count_messages_includes_tool_calls() -> None:
+def test_count_messages_includes_tool_calls():
     counter = TokenCounter()
     messages = [
         Message(
