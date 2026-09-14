@@ -11,5 +11,9 @@ __pycache__/
 dist/
 build/
 
+# 编辑器 —— IDE 配置含本机绝对路径，不入库
+.idea/
+.vscode/
+
 # 运行产物 —— 会话日志仅供本机回放，不入库
 chat.log

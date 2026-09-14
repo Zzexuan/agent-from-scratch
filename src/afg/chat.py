@@ -3,6 +3,7 @@ import time
 import structlog
 
 from afg.config import ContextConfig, LLMConfig
+from afg.context.compressor import Compressor
 from afg.context.counter import TokenCounter
 from afg.context.messages import Message
 from afg.context.window import ContextWindow
@@ -20,6 +21,7 @@ def main():
     llm = DeepSeekClient(config)
     counter = TokenCounter()
     window = ContextWindow.from_model(ctx_cfg.context_window_tokens, ctx_cfg.safety_ratio)
+    compressor = Compressor(budget=window.budget, target_ratio=ctx_cfg.compress_target_ratio)
 
     messages = [Message(role="system", content=SYSTEM_PROMPT)]
 
@@ -62,7 +64,26 @@ def main():
             latency_ms=round(latency_ms, 1),
         )
         if report.should_compress:
-            logger.warning("context.near_full", usage_pct=usage_pct, threshold=75.0)
+            messages_before = len(messages)
+            before_tokens = report.total_tokens
+            started_compress = time.perf_counter()
+            messages = compressor.compress(messages, llm, counter, ctx_cfg.compress_keep_recent)
+            compress_ms = (time.perf_counter() - started_compress) * 1000
+            after_report = window.check(messages, counter)
+            logger.info(
+                "context.compress",
+                messages_before=messages_before,
+                messages_after=len(messages),
+                before_tokens=before_tokens,
+                after_tokens=after_report.total_tokens,
+                ratio=round(after_report.total_tokens / before_tokens, 3),
+                compress_ms=round(compress_ms, 1),
+            )
+            if after_report.should_compress:
+                logger.warning(
+                    "context.still_full",
+                    usage_pct=round(after_report.usage_ratio * 100, 1),
+                )
         logger.info("chat.reply", content=resp.content)
 
 

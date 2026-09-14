@@ -17,3 +17,5 @@ class ContextConfig(BaseSettings):
     context_window_tokens: int = 8192
     safety_ratio: float = 0.75
     compress_threshold: float = 0.75
+    compress_keep_recent: int = 20
+    compress_target_ratio: float = 0.375
