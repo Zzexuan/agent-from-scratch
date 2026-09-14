@@ -1,20 +1,27 @@
+# pyproject.toml = 现代 Python 项目的"身份证 + 说明书"（替代 setup.py）。
+# pip 安装、pytest 配置、ruff 配置全部读这个文件。TOML 里 # 开头是注释。
+# 常用命令（在 agent-from-scratch 目录执行）：
+#   pip install -e ".[dev]"   # 安装项目本身 + 开发依赖（pytest/ruff）
+#   pytest -q                 # 跑测试
+#   ruff check .              # 代码风格检查
+
 [project]
-name = "afg"
+name = "afg"  # 包名（import 时用 afg，注意与 src/ 目录结构对应）
 version = "0.1.0"
 description = "Agent From Scratch：手搓 Agent 内核（消息模型 / LLM 抽象 / 上下文 / 工具 / 记忆）"
-requires-python = ">=3.11"
-dependencies = [
-    "pydantic>=2",
-    "pydantic-settings>=2",
-    "openai>=1",
-    "structlog>=24",
-    "tiktoken>=0.7",
+requires-python = ">=3.11"  # 要求 Python 3.11+（类型注解语法如 str | None 依赖它）
+dependencies = [  # 运行时依赖白名单：不得私自增加重量级依赖（主文档规定）
+    "pydantic>=2",  # 数据模型：消息/配置的类型校验与序列化（见 context/messages.py）
+    "pydantic-settings>=2",  # 从 .env / 环境变量读配置（见 config.py）
+    "openai>=1",  # OpenAI 官方 SDK，base_url 指向 DeepSeek（见 llm/deepseek_client.py）
+    "structlog>=24",  # 结构化日志（见 observability/logging.py）
+    "tiktoken>=0.7",  # OpenAI tokenizer，用于精确数 token（见 context/counter.py）
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8",
-    "ruff>=0.6",
+dev = [  # 开发依赖：pip install -e ".[dev]" 才装，运行时不需要
+    "pytest>=8",  # 测试框架
+    "ruff>=0.6",  # 代码风格检查器
 ]
 
 [build-system]
@@ -22,10 +29,10 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src"]  # 源码放在 src/ 目录（src 布局）：import afg 实际指向 src/afg
 
 [tool.ruff]
-line-length = 100
+line-length = 100  # 每行代码最多 100 字符，超了要换行（注释也一样）
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests"]  # pytest 只去 tests/ 目录找测试
