@@ -6,6 +6,28 @@ from afg.context.messages import TokenUsage, ToolCall
 from afg.llm.base import BaseLLM, LLMResponse
 
 
+def to_api_message(message):
+    # 我们的 ToolCall 是扁平内部格式（id/name/arguments），但协议要求回传时
+    # 必须带 type 且把 name/arguments 嵌进 function，arguments 还要还原成 JSON 字符串。
+    # 漏掉 type 会被 API 拒绝：400 messages.N.tool_calls.0.type
+    data = message.model_dump(exclude_none=True)
+    if data.get("tool_calls"):
+        api_calls = []
+        for tc in data["tool_calls"]:
+            api_calls.append(
+                {
+                    "id": tc["id"],
+                    "type": "function",
+                    "function": {
+                        "name": tc["name"],
+                        "arguments": json.dumps(tc["arguments"], ensure_ascii=False),
+                    },
+                }
+            )
+        data["tool_calls"] = api_calls
+    return data
+
+
 class DeepSeekClient(BaseLLM):
     def __init__(self, config):
         self._config = config
@@ -14,7 +36,7 @@ class DeepSeekClient(BaseLLM):
     def chat(self, messages, tools=None, temperature=0.7):
         clean_messages = []
         for m in messages:
-            clean_messages.append(m.model_dump(exclude_none=True))
+            clean_messages.append(to_api_message(m))
 
         if tools:
             resp = self._client.chat.completions.create(
