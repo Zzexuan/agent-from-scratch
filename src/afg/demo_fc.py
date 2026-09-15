@@ -3,20 +3,21 @@ import time
 
 from afg.config import LLMConfig
 from afg.context.messages import Message
-from afg.exceptions import ToolError, UnknownToolError
+from afg.exceptions import AfgError
 from afg.llm.deepseek_client import DeepSeekClient
 from afg.observability.logging import get_logger, setup_logging
-from afg.tools.base import to_openai_schema
-from afg.tools.builtin import CalculatorTool, CurrentTimeTool, WeatherTool
+from afg.tools.builtin import calculator, get_current_time, get_weather
+from afg.tools.registry import ToolRegistry
 
 DEFAULT_QUESTION = "帮我算 37*89"
 
 
-def find_tool(tools, name):
-    for tool in tools:
-        if tool.name == name:
-            return tool
-    raise UnknownToolError("模型要求调用一个不存在的工具", context={"tool": name})
+def build_registry():
+    registry = ToolRegistry()
+    registry.register(calculator)
+    registry.register(get_current_time)
+    registry.register(get_weather)
+    return registry
 
 
 def main(question):
@@ -25,12 +26,10 @@ def main(question):
     config = LLMConfig()
     llm = DeepSeekClient(config)
 
-    tools = [CalculatorTool(), CurrentTimeTool(), WeatherTool()]
-    schemas = []
-    for tool in tools:
-        schemas.append(to_openai_schema(tool))
+    registry = build_registry()
+    schemas = registry.to_openai_schemas()
 
-    logger.info("fc.start", question=question, tool_count=len(tools))
+    logger.info("fc.start", question=question, tools=registry.names())
 
     messages = [Message(role="user", content=question)]
 
@@ -53,12 +52,12 @@ def main(question):
 
     for tc in resp.tool_calls:
         logger.info("fc.tool_request", tool=tc.name, arguments=tc.arguments, call_id=tc.id)
-        tool = find_tool(tools, tc.name)
 
         started_tool = time.perf_counter()
         try:
+            tool = registry.get(tc.name)
             result = tool.run(**tc.arguments)
-        except ToolError as e:
+        except AfgError as e:
             result = "工具执行失败：" + str(e)
             logger.warning("fc.tool_error", tool=tc.name, error=str(e), context=e.context)
 

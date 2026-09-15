@@ -2,7 +2,7 @@ import ast
 import time
 
 from afg.exceptions import ToolError
-from afg.tools.base import BaseTool
+from afg.tools.decorator import tool
 
 
 def evaluate_node(node):
@@ -46,34 +46,18 @@ def evaluate_node(node):
     raise ToolError("表达式里有不支持的语法", context={"node": type(node).__name__})
 
 
-class CalculatorTool(BaseTool):
-    name = "calculator"
-    description = (
-        "计算一个数学表达式的值。参数 expr 是表达式字符串，"
-        "支持加减乘除、取余、乘方和括号，例如 37*89 或 (1+2)*3。"
-        "只能算纯数字，表达式里不能出现变量名或函数调用。"
-    )
+@tool
+def calculator(expr: str) -> str:
+    """计算一个数学表达式的值。支持加减乘除、取余、乘方和括号，例如 37*89 或 (1+2)*3。
+    只能算纯数字，表达式里不能出现变量名或函数调用。
 
-    def parameters(self):
-        return {
-            "type": "object",
-            "properties": {
-                "expr": {
-                    "type": "string",
-                    "description": "要计算的数学表达式，例如：37*89",
-                },
-            },
-            "required": ["expr"],
-        }
-
-    def run(self, **kwargs):
-        expr = kwargs["expr"]
-        try:
-            tree = ast.parse(expr, mode="eval")
-        except SyntaxError:
-            raise ToolError("表达式语法错误，没法解析", context={"expr": expr})
-        value = evaluate_node(tree)
-        return str(value)
+    :param expr: 要计算的数学表达式，例如：37*89
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        raise ToolError("表达式语法错误，没法解析", context={"expr": expr})
+    return str(evaluate_node(tree))
 
 
 FAKE_WEATHER = {
@@ -83,46 +67,26 @@ FAKE_WEATHER = {
 }
 
 
-class WeatherTool(BaseTool):
-    name = "get_weather"
-    description = (
-        "查询一个城市的当前天气。参数 city 是中文城市名，"
-        "目前只支持北京、上海、深圳三个城市，其他城市会返回错误。"
-        "返回该城市的天气状况、气温和湿度。"
-    )
+@tool
+def get_weather(city: str) -> str:
+    """查询一个城市的当前天气，返回天气状况、气温和湿度。
+    目前只支持北京、上海、深圳三个城市，其他城市会返回错误。
 
-    def parameters(self):
-        return {
-            "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string",
-                    "description": "中文城市名，可选值：北京、上海、深圳",
-                },
-            },
-            "required": ["city"],
-        }
-
-    def run(self, **kwargs):
-        city = kwargs["city"]
-        if city not in FAKE_WEATHER:
-            raise ToolError(
-                "没有这个城市的天气数据",
-                context={"city": city, "supported": list(FAKE_WEATHER.keys())},
-            )
-        row = FAKE_WEATHER[city]
-        text = city + "：" + row["condition"]
-        text += "，气温 " + str(row["temperature"]) + " 摄氏度"
-        text += "，湿度 " + str(row["humidity"]) + "%"
-        return text
+    :param city: 中文城市名，可选值：北京、上海、深圳
+    """
+    if city not in FAKE_WEATHER:
+        raise ToolError(
+            "没有这个城市的天气数据",
+            context={"city": city, "supported": list(FAKE_WEATHER.keys())},
+        )
+    row = FAKE_WEATHER[city]
+    text = city + "：" + row["condition"]
+    text += "，气温 " + str(row["temperature"]) + " 摄氏度"
+    text += "，湿度 " + str(row["humidity"]) + "%"
+    return text
 
 
-class CurrentTimeTool(BaseTool):
-    name = "get_current_time"
-    description = "获取本机当前的日期和时间（本地时区）。这个工具不需要任何参数，直接调用即可。"
-
-    def parameters(self):
-        return {"type": "object", "properties": {}}
-
-    def run(self, **kwargs):
-        return time.strftime("%Y-%m-%d %H:%M:%S")
+@tool
+def get_current_time() -> str:
+    """获取本机当前的日期和时间（本地时区）。不需要任何参数，直接调用即可。"""
+    return time.strftime("%Y-%m-%d %H:%M:%S")

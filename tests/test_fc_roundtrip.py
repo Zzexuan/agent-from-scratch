@@ -7,7 +7,7 @@ from afg.exceptions import ToolError
 from afg.llm.base import LLMResponse
 from afg.llm.deepseek_client import to_api_message
 from afg.tools.base import to_openai_schema
-from afg.tools.builtin import CalculatorTool, CurrentTimeTool, WeatherTool
+from afg.tools.builtin import calculator, get_current_time, get_weather
 from tests.fakes import FakeLLM
 
 
@@ -19,13 +19,13 @@ def test_fc_message_order_roundtrip():
             LLMResponse(content="37*89 等于 3293"),
         ]
     )
-    schemas = [to_openai_schema(CalculatorTool())]
+    schemas = [to_openai_schema(calculator)]
 
     messages = [Message(role="user", content="帮我算 37*89")]
     first = llm.chat(messages, tools=schemas)
     messages.append(Message(role="assistant", content=first.content, tool_calls=first.tool_calls))
 
-    result = CalculatorTool().run(**tool_call.arguments)
+    result = calculator.run(**tool_call.arguments)
     messages.append(Message(role="tool", content=result, tool_call_id=tool_call.id))
 
     llm.chat(messages, tools=schemas)
@@ -41,48 +41,42 @@ def test_fc_message_order_roundtrip():
 
 
 def test_calculator_basic():
-    tool = CalculatorTool()
-    assert tool.run(expr="37*89") == "3293"
-    assert tool.run(expr="(1+2)*3") == "9"
-    assert tool.run(expr="10/4") == "2.5"
-    assert tool.run(expr="-5 + 8") == "3"
-    assert tool.run(expr="2**10") == "1024"
+    assert calculator.run(expr="37*89") == "3293"
+    assert calculator.run(expr="(1+2)*3") == "9"
+    assert calculator.run(expr="10/4") == "2.5"
+    assert calculator.run(expr="-5 + 8") == "3"
+    assert calculator.run(expr="2**10") == "1024"
 
 
 def test_calculator_rejects_function_call():
-    tool = CalculatorTool()
     with pytest.raises(ToolError):
-        tool.run(expr="__import__('os').system('dir')")
+        calculator.run(expr="__import__('os').system('dir')")
 
 
 def test_calculator_rejects_variable_name():
-    tool = CalculatorTool()
     with pytest.raises(ToolError):
-        tool.run(expr="a + 1")
+        calculator.run(expr="a + 1")
 
 
 def test_calculator_rejects_division_by_zero():
-    tool = CalculatorTool()
     with pytest.raises(ToolError):
-        tool.run(expr="1/0")
+        calculator.run(expr="1/0")
 
 
 def test_weather_unknown_city_carries_context():
-    tool = WeatherTool()
     with pytest.raises(ToolError) as info:
-        tool.run(city="火星")
+        get_weather.run(city="火星")
     assert info.value.context["city"] == "火星"
 
 
 def test_current_time_tool_has_no_parameters():
-    tool = CurrentTimeTool()
-    assert tool.parameters()["properties"] == {}
-    result = tool.run()
+    assert get_current_time.parameters()["properties"] == {}
+    result = get_current_time.run()
     assert len(result) == 19
 
 
 def test_to_openai_schema_shape():
-    schema = to_openai_schema(CalculatorTool())
+    schema = to_openai_schema(calculator)
     assert schema["type"] == "function"
     assert schema["function"]["name"] == "calculator"
     assert schema["function"]["description"] != ""
