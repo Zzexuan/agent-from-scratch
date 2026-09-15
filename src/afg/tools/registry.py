@@ -1,17 +1,17 @@
 from afg.exceptions import DuplicateToolError, UnknownToolError
-from afg.tools.base import to_openai_schema
+from afg.tools.base import BaseTool, to_openai_schema
 
 
 class ToolRegistry:
-    def __init__(self):
+    def __init__(self) -> None:
         self._tools = {}
 
-    def register(self, tool):
+    def register(self, tool: BaseTool) -> None:
         if tool.name in self._tools:
             raise DuplicateToolError("工具名重复，已经注册过了", context={"tool": tool.name})
         self._tools[tool.name] = tool
 
-    def get(self, name):
+    def get(self, name: str) -> BaseTool:
         if name not in self._tools:
             raise UnknownToolError(
                 "没有这个工具",
@@ -19,10 +19,10 @@ class ToolRegistry:
             )
         return self._tools[name]
 
-    def names(self):
+    def names(self) -> list[str]:
         return list(self._tools.keys())
 
-    def to_openai_schemas(self):
+    def to_openai_schemas(self) -> list[dict]:
         schemas = []
         for tool in self._tools.values():
             schemas.append(to_openai_schema(tool))
