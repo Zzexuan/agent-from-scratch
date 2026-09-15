@@ -22,6 +22,9 @@ class ToolRegistry:
     def names(self) -> list[str]:
         return list(self._tools.keys())
 
+    def all(self) -> list[BaseTool]:
+        return list(self._tools.values())
+
     def to_openai_schemas(self) -> list[dict]:
         schemas = []
         for tool in self._tools.values():

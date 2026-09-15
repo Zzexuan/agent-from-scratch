@@ -19,3 +19,12 @@ class ContextConfig(BaseSettings):
     compress_threshold: float = 0.75
     compress_keep_recent: int = 20
     compress_target_ratio: float = 0.375
+
+
+class AgentConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    max_iterations: int = 10
+    same_action_limit: int = 3
+    retry_times: int = 3
+    retry_backoff: float = 1.5
