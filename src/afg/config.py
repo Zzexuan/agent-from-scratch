@@ -28,3 +28,14 @@ class AgentConfig(BaseSettings):
     same_action_limit: int = 3
     retry_times: int = 3
     retry_backoff: float = 1.5
+    memory_load_k: int = 5
+
+
+class MemoryConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    env: str = "dev"
+    session_id: str = "demo"
+
+    def db_path(self):
+        return f"memory-{self.env}.db"

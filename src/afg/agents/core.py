@@ -7,6 +7,7 @@ from afg.context.counter import TokenCounter
 from afg.context.messages import Message
 from afg.context.window import ContextWindow
 from afg.exceptions import AfgError
+from afg.memory.base import BaseMemory
 from afg.observability.logging import get_logger
 from afg.observability.retry import RetryingLLM
 from afg.tools.registry import ToolRegistry
@@ -19,6 +20,7 @@ class AgentCore:
         self._llm = RetryingLLM(llm, retries=config.retry_times, backoff=config.retry_backoff)
         self._config = config
         self._registry = ToolRegistry()
+        self._memory = None
         self._counter = TokenCounter()
         self._logger = get_logger("agent")
 
@@ -35,16 +37,14 @@ class AgentCore:
     def register(self, capability) -> "AgentCore":
         if isinstance(capability, ToolRegistry):
             self._registry = capability
+        elif isinstance(capability, BaseMemory):
+            self._memory = capability
         else:
             raise AfgError(
-                "AgentCore 不认识这种能力，目前只支持 ToolRegistry",
+                "AgentCore 不认识这种能力，目前只支持 ToolRegistry 和 BaseMemory",
                 context={"type": type(capability).__name__},
             )
-        self._logger.info(
-            "agent.register",
-            capability=type(capability).__name__,
-            tools=self._registry.names(),
-        )
+        self._logger.info("agent.register", capability=type(capability).__name__)
         return self
 
     def tools(self) -> list:
@@ -55,10 +55,13 @@ class AgentCore:
         if limit is None:
             limit = self._config.max_iterations
 
-        messages = [
-            Message(role="system", content=SYSTEM_PROMPT),
-            Message(role="user", content=task),
-        ]
+        messages = [Message(role="system", content=SYSTEM_PROMPT)]
+        if self._memory is not None:
+            history = self._memory.load_context(k=self._config.memory_load_k)
+            for index in range(len(history)):
+                messages.append(history[index])
+        start = len(messages)
+        messages.append(Message(role="user", content=task))
         schemas = self._registry.to_openai_schemas()
         self._logger.info("agent.start", task=task, max_iterations=limit, tool_count=len(schemas))
 
@@ -82,6 +85,7 @@ class AgentCore:
                 )
 
             if not resp.tool_calls:
+                self._remember(messages, start)
                 self._logger.info(
                     "agent.done", iteration=iteration, reason="模型给出最终答案", answer=thought
                 )
@@ -131,6 +135,7 @@ class AgentCore:
         answer = final.content
         if answer is None:
             answer = ""
+        self._remember(messages, start)
         self._logger.info("agent.done", reason=stop_reason, answer=answer)
         return answer
 
@@ -190,3 +195,11 @@ class AgentCore:
 
     def registry_names(self) -> list[str]:
         return self._registry.names()
+
+    def _remember(self, messages, start):
+        if self._memory is None:
+            return
+        fresh = []
+        for index in range(start, len(messages)):
+            fresh.append(messages[index])
+        self._memory.save(fresh)

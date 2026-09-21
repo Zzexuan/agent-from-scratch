@@ -5,6 +5,7 @@ from afg.config import AgentConfig
 from afg.context.messages import ToolCall
 from afg.exceptions import AfgError
 from afg.llm.base import LLMResponse
+from afg.memory.sqlite import SQLiteMemory
 from afg.tools.builtin import calculator, get_current_time, get_weather
 from afg.tools.registry import ToolRegistry
 from tests.fakes import FakeLLM
@@ -176,3 +177,32 @@ def test_tools_returns_registered_tool_objects():
 
     assert names == ["calculator", "get_current_time", "get_weather"]
 
+
+def test_memory_saves_only_fresh_messages():
+    memory = SQLiteMemory(":memory:", session_id="test")
+    responses = [LLMResponse(content="你好呀"), LLMResponse(content="好的")]
+    agent, _ = make_agent(responses)
+    agent.register(memory)
+
+    agent.run("我叫小明")
+    assert len(memory.load_context(k=99)) == 2
+
+    agent.run("再说一遍")
+    assert len(memory.load_context(k=99)) == 4
+
+
+def test_memory_injects_history_into_next_run():
+    memory = SQLiteMemory(":memory:", session_id="test")
+    first_agent, _ = make_agent([LLMResponse(content="你好呀")])
+    first_agent.register(memory)
+    first_agent.run("我叫小明")
+
+    second_agent, second_fake = make_agent([LLMResponse(content="你叫小明")])
+    second_agent.register(memory)
+    second_agent.run("我叫什么？")
+
+    seen = second_fake.calls[0]
+    assert seen[0].role == "system"
+    assert seen[1].content == "我叫小明"
+    assert seen[2].content == "你好呀"
+    assert seen[3].content == "我叫什么？"

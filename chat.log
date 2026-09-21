@@ -220,3 +220,17 @@
 {"iteration": 2, "messages": 4, "tokens": 64, "budget": 6144, "usage_pct": 1.0, "event": "agent.turn", "step": 0, "trace_id": "2c4d247d", "level": "info", "component": "agent", "ts": "2026-09-17T09:49:44.965449Z"}
 {"iteration": 2, "reason": "模型给出最终答案", "answer": "12 × 34 = **408**", "event": "agent.done", "step": 0, "trace_id": "2c4d247d", "level": "info", "component": "agent", "ts": "2026-09-17T09:49:47.205000Z"}
 {"round": 2, "answer": "12 × 34 = **408**", "event": "hotswap.answer", "step": 0, "trace_id": "2c4d247d", "level": "info", "component": "demo_hotswap", "ts": "2026-09-17T09:49:47.205304Z"}
+{"capability": "SQLiteMemory", "event": "agent.register", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "agent", "ts": "2026-09-18T08:05:37.403160Z"}
+{"session_id": "demo", "count": 0, "event": "memory.load", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "memory", "ts": "2026-09-18T08:05:37.403709Z"}
+{"task": "我叫小明，请记住这个名字", "max_iterations": 10, "tool_count": 0, "event": "agent.start", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "agent", "ts": "2026-09-18T08:05:37.403914Z"}
+{"iteration": 1, "messages": 2, "tokens": 37, "budget": 6144, "usage_pct": 0.6, "event": "agent.turn", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "agent", "ts": "2026-09-18T08:05:37.410969Z"}
+{"session_id": "demo", "count": 2, "event": "memory.save", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "memory", "ts": "2026-09-18T08:05:40.706918Z"}
+{"iteration": 1, "reason": "模型给出最终答案", "answer": "好的，小明，我记住了！在咱们这次对话里，我会记得你叫小明。😊", "event": "agent.done", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "agent", "ts": "2026-09-18T08:05:40.707235Z"}
+{"question": "我叫小明，请记住这个名字", "answer": "好的，小明，我记住了！在咱们这次对话里，我会记得你叫小明。😊", "event": "demo_memory.answer", "trace_id": "388c9ad8", "step": 0, "level": "info", "component": "demo_memory", "ts": "2026-09-18T08:05:40.707662Z"}
+{"capability": "SQLiteMemory", "event": "agent.register", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "agent", "ts": "2026-09-18T08:05:57.829200Z"}
+{"session_id": "demo", "count": 2, "event": "memory.load", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "memory", "ts": "2026-09-18T08:05:57.829827Z"}
+{"task": "我叫什么？", "max_iterations": 10, "tool_count": 0, "event": "agent.start", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "agent", "ts": "2026-09-18T08:05:57.830035Z"}
+{"iteration": 1, "messages": 4, "tokens": 79, "budget": 6144, "usage_pct": 1.3, "event": "agent.turn", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "agent", "ts": "2026-09-18T08:05:57.837571Z"}
+{"session_id": "demo", "count": 2, "event": "memory.save", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "memory", "ts": "2026-09-18T08:06:00.860673Z"}
+{"iteration": 1, "reason": "模型给出最终答案", "answer": "你叫小明。😊", "event": "agent.done", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "agent", "ts": "2026-09-18T08:06:00.860967Z"}
+{"question": "我叫什么？", "answer": "你叫小明。😊", "event": "demo_memory.answer", "step": 0, "trace_id": "f4837b8a", "level": "info", "component": "demo_memory", "ts": "2026-09-18T08:06:00.861181Z"}
