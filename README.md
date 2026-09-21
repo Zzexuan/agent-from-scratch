@@ -3,10 +3,11 @@
 > 不依赖任何框架，**21 天从零手搓一个 Agent 内核**：消息模型 → 工具 → ReAct → 记忆 → Skills → MCP → 沙盒 → 多 Agent 编排。
 > 八股驱动学习，每天手搓出真实可运行的代码，配套「是什么 → 我的实现 → 面试官追问」八股笔记。
 
-![progress](https://img.shields.io/badge/进度-D7%2F21%20·%20W1%20完成%20·%20v0.1-2f6fdb)
+![progress](https://img.shields.io/badge/进度-D9%2F21%20·%20W2%20进行中-2f6fdb)
 ![python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
-![framework](https://img.shields.io/badge/框架-零依赖%20(无%20LangChain)-ff6b35)
+![framework](https://img.shields.io/badge/框架-零%20Agent%20框架%20(无%20LangChain)-ff6b35)
 ![llm](https://img.shields.io/badge/LLM-DeepSeek%20·%20OpenAI%20兼容-00b386)
+![embed](https://img.shields.io/badge/embedding-本地%20bge--small--zh%20·%20torch%20CPU-9b59b6)
 ![tests](https://img.shields.io/badge/tests-pytest%20·%20FakeLLM%20零%20API-8a2be2)
 
 ---
@@ -17,7 +18,7 @@
 
 每个知识点先看**面试官怎么问**（八股），再**手搓出来看见它真实运行**，最终沉淀为面试可直接讲的答案。
 
-## ✅ 已完成（v0.1，D1-D6）
+## ✅ 已完成（D1-D9）
 
 - **D1 骨架**：`Message`/`ToolCall`/`TokenUsage` 消息模型 + `BaseLLM` 抽象 + DeepSeek 客户端 + 多轮对话 CLI
 - **D2 上下文预算**：tiktoken 计数 + `ContextWindow` 预算检查 + structlog 双输出日志（`chat.log` 纯 JSON 行）
@@ -26,6 +27,8 @@
 - **D5 装饰器与注册器**：`@tool` 从类型注解自动生成 JSON Schema + `ToolRegistry` + 幻觉防范
 - **D6 ReAct 主循环**：`AgentCore.run()` 想-行动-观察循环 + 双重熔断 + 指数退避重试 + 终端 REPL
 - **D7 checkpoint**：`afg` 公共 API（`from afg import AgentCore, tool`）+ 热插拔演练 + 日志回放测试
+- **D8 记忆**：`BaseMemory` 协议 + `SQLiteMemory`（跨进程记住对话）+ 内核挂载点 `_remember` 增量写回
+- **D9 RAG 检索**：本地 `bge-small-zh-v1.5` 编码 + 笔记分块/向量缓存/余弦 Top-K，封装成普通 `search_notes` 工具
 
 ## 🗓️ 21 天路线图
 
@@ -43,15 +46,18 @@ agent-from-scratch/
 │   ├── llm/            ✅ D1  BaseLLM 抽象 → DeepSeekClient（OpenAI 兼容）
 │   ├── context/        ✅ D1  消息模型（Pydantic，OpenAI 协议转换唯一入口）
 │   ├── observability/  ✅ D2/D6  structlog JSON 日志 + 重试（span / 成本统计留到 W3）
-│   ├── tools/          ✅ D4/D5  BaseTool 协议 + @tool 装饰器 + ToolRegistry
+│   ├── tools/          ✅ D4/D5/D9  BaseTool 协议 + @tool 装饰器 + ToolRegistry
+│   │                            + search_notes（RAG 检索工具）
 │   ├── agents/         ✅ D6   AgentCore 最小内核 / ReAct loop / 熔断
-│   ├── memory/         ◻ D8  BaseMemory 协议 → SQLiteMemory / SummaryMemory
-│   ├── skills/         ◻ D11 BaseSkill + 渐进披露加载器
-│   ├── mcp/            ◻ D12 手写 JSON-RPC 2.0 server(stdio) + client
-│   ├── sandbox/        ◻ D13 执行护栏：超时 / 黑名单 / 注入防御
-│   └── config.py       ✅ D1  pydantic-settings（密钥不硬编码）
-├── tests/              ✅ D1-D7  10 个测试文件 + FakeLLM 替身（零真实 API）
-├── notes/              ✅ D1-D6  六篇八股笔记（D01-agent定义.md … D06-react-loop.md）
+│   ├── memory/         ✅ D8   BaseMemory 协议 + SQLiteMemory（SummaryMemory 留到 D14）
+│   ├── rag/            ✅ D9   本地 embedding + 分块 + 向量缓存 + 余弦检索
+│   ├── skills/         ◻ D10  BaseSkill + 渐进披露加载器
+│   ├── mcp/            ◻ D11/D12  手写 JSON-RPC 2.0 server(stdio) + client
+│   ├── sandbox/        ◻ D13  执行护栏：超时 / 黑名单 / 注入防御
+│   └── config.py       ✅ D1/D8/D9  pydantic-settings（LLM / Context / Agent / Memory / Search）
+├── models/             D9 本地模型（bge-small-zh-v1.5，92MB，不入库，见快速开始）
+├── tests/              ✅ D1-D9  12 个测试文件 + FakeLLM/FakeEmbedder 替身（零真实 API）
+├── notes/              ✅ D1-D9  九篇八股笔记（D01-agent定义.md … D09-rag.md）
 ├── pyproject.toml      ✅ D1  ruff + pytest
 └── .env.example        ✅ D1  DEEPSEEK_API_KEY 占位
 ```
@@ -92,9 +98,25 @@ python -m afg.cli
 # 热插拔演练（D7：同一个内核换两组工具，内核代码零修改）
 python -m afg.demo_hotswap
 
-# 运行单测（FakeLLM 替身，零真实 API 调用）
+# 记忆演练（D8：跨两次进程，第二次仍记得你的名字）
+python -m afg.demo_memory "我叫小明"
+
+# 运行单测（FakeLLM / FakeEmbedder 替身，零真实 API 调用、零模型加载）
 pytest -q
 ```
+
+**D9 的 RAG 检索需要先下本地 embedding 模型**（一次性，约 92MB，下到 `models/`）：
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # CPU 版足够，CUDA 版要多 3GB
+pip install transformers
+
+python -m afg.rag.download        # 下载 BAAI/bge-small-zh-v1.5 到 models/bge-small-zh-v1.5
+python -m afg.demo_rag            # 问"我哪篇笔记讲过 function calling 的四步流程"
+```
+
+国内网络下载失败时改用镜像：`export HF_ENDPOINT=https://hf-mirror.com` 再跑一次下载命令。
+`models/` 与 `search-index.json` 都在 `.gitignore` 里——**模型能重新下载、索引能从笔记重建**，都不入库。
 
 ## 📓 学习笔记（八股）
 
@@ -108,7 +130,9 @@ pytest -q
 | `notes/D04-function-calling.md` ✅ | FC 四步流程、schema 设计、并行工具调用 |
 | `notes/D05-工具注册与幻觉.md` ✅ | 工具选择策略、装饰器注册、幻觉防范 |
 | `notes/D06-react-loop.md` ✅ | ReAct 三要素、死循环熔断、上下文流动 |
-| `notes/D07-…` | 周 checkpoint 自测（待完成） |
+| `notes/D07-周checkpoint.md` ✅ | 第 1 周 15 题自测清单 + 热插拔演练结论 + v0.1 结构 |
+| `notes/D08-记忆系统.md` ✅ | 记忆分层、Record/Retrieve 闭环、记忆与 RAG 的区别 |
+| `notes/D09-rag.md` ✅ | RAG 两阶段、双塔与 CLS 池化、相似≠相关、Rerank、评估三层 |
 
 ---
 

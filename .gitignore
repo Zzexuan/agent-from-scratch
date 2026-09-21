@@ -18,3 +18,7 @@ build/
 # 运行产物 —— 会话日志与本地记忆库仅供本机使用，不入库
 chat.log
 *.db
+
+# 检索产物 —— 索引能从笔记重建、模型能重新下载，都不入库
+search-index.json
+models/

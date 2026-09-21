@@ -9,6 +9,9 @@ dependencies = [
     "openai>=1",
     "structlog>=24",
     "tiktoken>=0.7",
+    "torch>=2",
+    "transformers>=5",
+    "huggingface-hub>=1",
 ]
 
 [project.optional-dependencies]

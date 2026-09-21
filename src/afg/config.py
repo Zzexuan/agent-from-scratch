@@ -39,3 +39,15 @@ class MemoryConfig(BaseSettings):
 
     def db_path(self):
         return f"memory-{self.env}.db"
+
+
+class SearchConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    corpus_dir: str = "notes"
+    embedder_dir: str = "models/bge-small-zh-v1.5"
+    embedder_repo: str = "BAAI/bge-small-zh-v1.5"
+    index_path: str = "search-index.json"
+    top_k: int = 3
+    max_chunk_chars: int = 800
+
