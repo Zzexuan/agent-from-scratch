@@ -175,3 +175,4 @@ def test_tools_returns_registered_tool_objects():
         names.append(tool.name)
 
     assert names == ["calculator", "get_current_time", "get_weather"]
+

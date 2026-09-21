@@ -187,3 +187,6 @@ class AgentCore:
             latency_ms=round((time.perf_counter() - started) * 1000, 1),
         )
         return result
+
+    def registry_names(self) -> list[str]:
+        return self._registry.names()

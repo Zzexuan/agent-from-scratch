@@ -3,7 +3,7 @@
 > 不依赖任何框架，**21 天从零手搓一个 Agent 内核**：消息模型 → 工具 → ReAct → 记忆 → Skills → MCP → 沙盒 → 多 Agent 编排。
 > 八股驱动学习，每天手搓出真实可运行的代码，配套「是什么 → 我的实现 → 面试官追问」八股笔记。
 
-![progress](https://img.shields.io/badge/进度-D1%2F21%20·%20骨架期-2f6fdb)
+![progress](https://img.shields.io/badge/进度-D7%2F21%20·%20W1%20完成%20·%20v0.1-2f6fdb)
 ![python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![framework](https://img.shields.io/badge/框架-零依赖%20(无%20LangChain)-ff6b35)
 ![llm](https://img.shields.io/badge/LLM-DeepSeek%20·%20OpenAI%20兼容-00b386)
@@ -17,10 +17,15 @@
 
 每个知识点先看**面试官怎么问**（八股），再**手搓出来看见它真实运行**，最终沉淀为面试可直接讲的答案。
 
-## ✅ 已完成
+## ✅ 已完成（v0.1，D1-D6）
 
-- **D1 骨架期**：消息模型（`Message`/`ToolCall`/`TokenUsage`）+ `BaseLLM` 抽象 + DeepSeek 客户端 + 多轮对话 CLI + FakeLLM 零 API 单测
-- **D01 八股笔记**：AI Agent 定义 / 核心组件架构（Planner · Memory · Tools · Loop），含面试追问与参考来源
+- **D1 骨架**：`Message`/`ToolCall`/`TokenUsage` 消息模型 + `BaseLLM` 抽象 + DeepSeek 客户端 + 多轮对话 CLI
+- **D2 上下文预算**：tiktoken 计数 + `ContextWindow` 预算检查 + structlog 双输出日志（`chat.log` 纯 JSON 行）
+- **D3 上下文压缩**：`Compressor` 三段式（保留开头 + LLM 摘要 + 保留最近 N 条），用量 75% 触发
+- **D4 Function Calling**：`BaseTool` 协议 + 三个内置工具 + 完整 FC 闭环
+- **D5 装饰器与注册器**：`@tool` 从类型注解自动生成 JSON Schema + `ToolRegistry` + 幻觉防范
+- **D6 ReAct 主循环**：`AgentCore.run()` 想-行动-观察循环 + 双重熔断 + 指数退避重试 + 终端 REPL
+- **D7 checkpoint**：`afg` 公共 API（`from afg import AgentCore, tool`）+ 热插拔演练 + 日志回放测试
 
 ## 🗓️ 21 天路线图
 
@@ -37,16 +42,16 @@ agent-from-scratch/
 ├── src/afg/
 │   ├── llm/            ✅ D1  BaseLLM 抽象 → DeepSeekClient（OpenAI 兼容）
 │   ├── context/        ✅ D1  消息模型（Pydantic，OpenAI 协议转换唯一入口）
-│   ├── observability/  ◻ D2  structlog JSON 日志 + OTel 风格 span + 成本统计
-│   ├── tools/          ◻ D4  BaseTool 协议 + @tool 注册器
-│   ├── agents/         ◻ D5  AgentCore 最小内核 / ReAct loop
+│   ├── observability/  ✅ D2/D6  structlog JSON 日志 + 重试（span / 成本统计留到 W3）
+│   ├── tools/          ✅ D4/D5  BaseTool 协议 + @tool 装饰器 + ToolRegistry
+│   ├── agents/         ✅ D6   AgentCore 最小内核 / ReAct loop / 熔断
 │   ├── memory/         ◻ D8  BaseMemory 协议 → SQLiteMemory / SummaryMemory
 │   ├── skills/         ◻ D11 BaseSkill + 渐进披露加载器
 │   ├── mcp/            ◻ D12 手写 JSON-RPC 2.0 server(stdio) + client
 │   ├── sandbox/        ◻ D13 执行护栏：超时 / 黑名单 / 注入防御
 │   └── config.py       ✅ D1  pydantic-settings（密钥不硬编码）
-├── tests/              ✅ D1  消息模型单测 + FakeLLM 替身（零真实 API）
-├── notes/              ✅ D1  21 篇八股笔记（D01-agent定义.md … D21-总checkpoint.md）
+├── tests/              ✅ D1-D7  10 个测试文件 + FakeLLM 替身（零真实 API）
+├── notes/              ✅ D1-D6  六篇八股笔记（D01-agent定义.md … D06-react-loop.md）
 ├── pyproject.toml      ✅ D1  ruff + pytest
 └── .env.example        ✅ D1  DEEPSEEK_API_KEY 占位
 ```
@@ -81,6 +86,12 @@ cp .env.example .env
 # 多轮对话 CLI（D1 手搓核心体验：上下文 = 自己维护的 messages 列表）
 python -m afg.chat
 
+# ReAct Agent CLI（D6：/tools 列工具、/trace 逐步显示、/exit 退出）
+python -m afg.cli
+
+# 热插拔演练（D7：同一个内核换两组工具，内核代码零修改）
+python -m afg.demo_hotswap
+
 # 运行单测（FakeLLM 替身，零真实 API 调用）
 pytest -q
 ```
@@ -92,8 +103,12 @@ pytest -q
 | 文件 | 主题 |
 |---|---|
 | `notes/D01-agent定义.md` ✅ | AI Agent 定义与基本架构（Planner/Memory/Tools/Loop） |
-| `notes/D02-*.md` | 上下文管理（待完成） |
-| … | 每日随代码同步更新 |
+| `notes/D02-上下文预算.md` ✅ | 上下文四要素、token 预算、Context Rot |
+| `notes/D03-上下文压缩.md` ✅ | 四策略框架、三段式压缩、降级顺序 |
+| `notes/D04-function-calling.md` ✅ | FC 四步流程、schema 设计、并行工具调用 |
+| `notes/D05-工具注册与幻觉.md` ✅ | 工具选择策略、装饰器注册、幻觉防范 |
+| `notes/D06-react-loop.md` ✅ | ReAct 三要素、死循环熔断、上下文流动 |
+| `notes/D07-…` | 周 checkpoint 自测（待完成） |
 
 ---
 
