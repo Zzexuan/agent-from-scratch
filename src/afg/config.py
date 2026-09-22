@@ -51,3 +51,10 @@ class SearchConfig(BaseSettings):
     top_k: int = 3
     max_chunk_chars: int = 800
 
+
+class SkillConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    skills_dir: str = "skills"
+    max_body_tokens: int = 2000
+

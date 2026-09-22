@@ -3,7 +3,7 @@
 > 不依赖任何框架，**21 天从零手搓一个 Agent 内核**：消息模型 → 工具 → ReAct → 记忆 → Skills → MCP → 沙盒 → 多 Agent 编排。
 > 八股驱动学习，每天手搓出真实可运行的代码，配套「是什么 → 我的实现 → 面试官追问」八股笔记。
 
-![progress](https://img.shields.io/badge/进度-D9%2F21%20·%20W2%20进行中-2f6fdb)
+![progress](https://img.shields.io/badge/进度-D10%2F21%20·%20W2%20进行中-2f6fdb)
 ![python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![framework](https://img.shields.io/badge/框架-零%20Agent%20框架%20(无%20LangChain)-ff6b35)
 ![llm](https://img.shields.io/badge/LLM-DeepSeek%20·%20OpenAI%20兼容-00b386)
@@ -18,7 +18,7 @@
 
 每个知识点先看**面试官怎么问**（八股），再**手搓出来看见它真实运行**，最终沉淀为面试可直接讲的答案。
 
-## ✅ 已完成（D1-D9）
+## ✅ 已完成（D1-D10）
 
 - **D1 骨架**：`Message`/`ToolCall`/`TokenUsage` 消息模型 + `BaseLLM` 抽象 + DeepSeek 客户端 + 多轮对话 CLI
 - **D2 上下文预算**：tiktoken 计数 + `ContextWindow` 预算检查 + structlog 双输出日志（`chat.log` 纯 JSON 行）
@@ -29,6 +29,7 @@
 - **D7 checkpoint**：`afg` 公共 API（`from afg import AgentCore, tool`）+ 热插拔演练 + 日志回放测试
 - **D8 记忆**：`BaseMemory` 协议 + `SQLiteMemory`（跨进程记住对话）+ 内核挂载点 `_remember` 增量写回
 - **D9 RAG 检索**：本地 `bge-small-zh-v1.5` 编码 + 笔记分块/向量缓存/余弦 Top-K，封装成普通 `search_notes` 工具
+- **D10 Skills**：`BaseSkill` + `SkillLoader`（frontmatter 解析）+ 渐进披露两跳（system 只注入 name/description 索引，`load_skill` 按需取全文）
 
 ## 🗓️ 21 天路线图
 
@@ -51,13 +52,14 @@ agent-from-scratch/
 │   ├── agents/         ✅ D6   AgentCore 最小内核 / ReAct loop / 熔断
 │   ├── memory/         ✅ D8   BaseMemory 协议 + SQLiteMemory（SummaryMemory 留到 D14）
 │   ├── rag/            ✅ D9   本地 embedding + 分块 + 向量缓存 + 余弦检索
-│   ├── skills/         ◻ D10  BaseSkill + 渐进披露加载器
+│   ├── skills/         ✅ D10  BaseSkill 协议 + SkillLoader（frontmatter 解析）+ load_skill 工具
 │   ├── mcp/            ◻ D11/D12  手写 JSON-RPC 2.0 server(stdio) + client
 │   ├── sandbox/        ◻ D13  执行护栏：超时 / 黑名单 / 注入防御
-│   └── config.py       ✅ D1/D8/D9  pydantic-settings（LLM / Context / Agent / Memory / Search）
+│   └── config.py       ✅ D1/D8/D9/D10  pydantic-settings（LLM / Context / Agent / Memory / Search / Skill）
 ├── models/             D9 本地模型（bge-small-zh-v1.5，92MB，不入库，见快速开始）
-├── tests/              ✅ D1-D9  12 个测试文件 + FakeLLM/FakeEmbedder 替身（零真实 API）
-├── notes/              ✅ D1-D9  九篇八股笔记（D01-agent定义.md … D09-rag.md）
+├── skills/             D10 技能手册（*.md，frontmatter 带 name/description）
+├── tests/              ✅ D1-D10  13 个测试文件 + FakeLLM/FakeEmbedder 替身（零真实 API）
+├── notes/              ✅ D1-D10  十篇八股笔记（D01-agent定义.md … D10-skills.md）
 ├── pyproject.toml      ✅ D1  ruff + pytest
 └── .env.example        ✅ D1  DEEPSEEK_API_KEY 占位
 ```
@@ -68,10 +70,10 @@ agent-from-scratch/
 
 ```python
 agent = AgentCore(llm=DeepSeekClient(config))
-agent.register(memory)      # 任何 BaseMemory 实现
-agent.register(skill_lib)   # 任何 BaseSkill 集
-agent.register(mcp_client)  # 外部 MCP server 的工具
-agent.run("...")            # 内核循环不改一行
+agent.register(memory)         # 任何 BaseMemory 实现（D8 已落地）
+agent.register(skill_loader)   # 任何 SkillLoader（D10 已落地）
+agent.register(mcp_client)     # 外部 MCP server 的工具（D11-D12 待做）
+agent.run("...")               # 内核循环不改一行
 ```
 
 ## 📐 两条架构纪律
@@ -100,6 +102,9 @@ python -m afg.demo_hotswap
 
 # 记忆演练（D8：跨两次进程，第二次仍记得你的名字）
 python -m afg.demo_memory "我叫小明"
+
+# Skills 演练（D10：先注入技能索引，模型自己决定要不要加载手册）
+python -m afg.demo_skills
 
 # 运行单测（FakeLLM / FakeEmbedder 替身，零真实 API 调用、零模型加载）
 pytest -q
@@ -133,6 +138,7 @@ python -m afg.demo_rag            # 问"我哪篇笔记讲过 function calling �
 | `notes/D07-周checkpoint.md` ✅ | 第 1 周 15 题自测清单 + 热插拔演练结论 + v0.1 结构 |
 | `notes/D08-记忆系统.md` ✅ | 记忆分层、Record/Retrieve 闭环、记忆与 RAG 的区别 |
 | `notes/D09-rag.md` ✅ | RAG 两阶段、双塔与 CLS 池化、相似≠相关、Rerank、评估三层 |
+| `notes/D10-skills.md` ✅ | Skill 是什么、Skills vs Few-shot vs MCP、渐进披露、Skills vs Subagents |
 
 ---
 

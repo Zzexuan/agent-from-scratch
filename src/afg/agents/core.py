@@ -10,6 +10,7 @@ from afg.exceptions import AfgError
 from afg.memory.base import BaseMemory
 from afg.observability.logging import get_logger
 from afg.observability.retry import RetryingLLM
+from afg.skills.base import SkillLoader
 from afg.tools.registry import ToolRegistry
 
 SYSTEM_PROMPT = "你是一个乐于助人的 AI 助手，请用简体中文回答。"
@@ -21,6 +22,7 @@ class AgentCore:
         self._config = config
         self._registry = ToolRegistry()
         self._memory = None
+        self._skills = None
         self._counter = TokenCounter()
         self._logger = get_logger("agent")
 
@@ -39,9 +41,11 @@ class AgentCore:
             self._registry = capability
         elif isinstance(capability, BaseMemory):
             self._memory = capability
+        elif isinstance(capability, SkillLoader):
+            self._skills = capability
         else:
             raise AfgError(
-                "AgentCore 不认识这种能力，目前只支持 ToolRegistry 和 BaseMemory",
+                "AgentCore 不认识这种能力，目前只支持 ToolRegistry、BaseMemory 和 SkillLoader",
                 context={"type": type(capability).__name__},
             )
         self._logger.info("agent.register", capability=type(capability).__name__)
@@ -55,7 +59,12 @@ class AgentCore:
         if limit is None:
             limit = self._config.max_iterations
 
-        messages = [Message(role="system", content=SYSTEM_PROMPT)]
+        system_text = SYSTEM_PROMPT
+        if self._skills is not None:
+            index = self._skills.inject_index()
+            if index:
+                system_text = system_text + "\n\n" + index
+        messages = [Message(role="system", content=system_text)]
         if self._memory is not None:
             history = self._memory.load_context(k=self._config.memory_load_k)
             for index in range(len(history)):
